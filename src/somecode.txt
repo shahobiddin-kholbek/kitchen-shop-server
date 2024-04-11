@@ -1,0 +1,42 @@
+import { getProducts } from './getProducts';
+import { createProduct } from './createProduct';
+import { updateProduct } from './updateProduct';
+import { deleteProduct } from './deleteProduct';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import { Product } from 'src/entities/product.entity';
+import { ProductDto } from 'src/dto/product.dto';
+
+@Controller('products')
+export class ProductController {
+    constructor(
+        private readonly productRepository: Repository<Product>,
+    ) {}
+
+    @Get()
+    async getProducts(
+        @Query('category') category: string,
+        @Query('sortByPrice') sortByPrice: string,
+        @Query('searchValue') searchValue: string,
+        @Query('minPrice') minPrice: number,
+        @Query('maxPrice') maxPrice: number,
+    ): Promise<Product[]> {
+        return getProducts(this.productRepository, category, sortByPrice, searchValue, minPrice, maxPrice);
+    }
+
+    @Post()
+    @UsePipes(new ValidationPipe())
+    async createProduct(@Body() dto: ProductDto): Promise<any> {
+        return createProduct(this.productRepository, dto);
+    }
+
+    @Patch(':id')
+    async updateProduct(@Param('id') id: any, @Body() product: Partial<Product>): Promise<Product> {
+        return updateProduct(this.productRepository, id, product);
+    }
+
+    @Delete(':id')
+    async deleteProduct(@Param('id') id: string): Promise<void> {
+        return deleteProduct(this.productRepository, id);
+    }
+}
